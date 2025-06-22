@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	_ "github.com/google/uuid"
 	"io/ioutil"
 	"net/http"
 	"os"
