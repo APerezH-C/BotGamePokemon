@@ -6,6 +6,7 @@ import (
 	"fmt"
 	_ "github.com/google/uuid"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
@@ -21,6 +22,12 @@ var (
 	telegramToken  = os.Getenv("TELEGRAM_TOKEN")
 	telegramChatID = os.Getenv("TELEGRAM_CHAT_ID")
 )
+
+var userAgents = []string{
+	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
+	"Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1",
+}
 
 func main() {
 	for {
@@ -51,9 +58,18 @@ func checkStock() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	req.Header.Set("User-Agent", "Mozilla/5.0") // Evitar bloqueos básicos
 
-	client := &http.Client{}
+	req.Header = http.Header{
+		"User-Agent":      []string{userAgents[rand.Intn(len(userAgents))]},
+		"Accept":          []string{"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"},
+		"Accept-Language": []string{"es-ES,es;q=0.9"},
+		"Referer":         []string{"https://www.google.com/"},
+		"Dnt":             []string{"1"},
+	} // Evitar bloqueos básicos
+
+	client := &http.Client{
+		Timeout: 15 * time.Second, // Timeout más generoso
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return false, err
